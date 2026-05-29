@@ -1,0 +1,9 @@
+{
+    "files.autoSave": "onWindowChange",
+    "editor.acceptSuggestionOnCommitCharacter": false,
+    "editor.acceptSuggestionOnEnter": "off",
+    "editor.inlineSuggest.enabled": true,
+    "editor.suggest.matchOnWordStartOnly": false,
+    "editor.suggest.selectionMode": "always",
+    "editor.suggest.preview": false
+}

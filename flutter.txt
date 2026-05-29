@@ -1,0 +1,109 @@
+STATE MANAGEMENT
+
+where to store the data during state change  
+
+
+approaches All solving the same problem — where to store and how to update data when state changes.
+
+ 1. Setstate()
+ setstate()-> data lives inside the class of the widget
+
+class _MyWidgetState extends State<MyWidget> 
+{ Color color = Colors.blue; // stored here
+}
+
+ ---------------------------------------------------------------------------------------------------------------------------------------- 
+
+2. Provider - simply state  change process happens just outside the widget class
+// 1. App starts, ColorModel created
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ColorModel(), // color = blue created here
+      child: MyApp(),
+    ),
+  );
+}
+
+// 2. Widget reads it
+class MyWidget extends StatelessWidget {
+  build(context) {
+    final colorModel = context.watch<ColorModel>(); // reads color = blue
+    return ElevatedButton(
+      onPressed: () => colorModel.changeColor(), // changes to green
+      child: Container(color: colorModel.color), // shows current color
+    );
+  }
+}
+
+// 3. Data
+class ColorModel extends ChangeNotifier {
+  Color color = Colors.blue;
+  void changeColor() {
+    color = Colors.green;
+    notifyListeners();
+  }
+}
+_________________________________________________________________________________________________________________________
+
+3. Riverpod = data is stored globally so it can be accessed from anywhere
+// 1. Stored globally - outside everything
+final colorProvider = StateProvider((ref) => Colors.blue);
+
+// 2. Widget reads it
+class MyWidget extends ConsumerWidget {
+  build(context, ref) {
+    final color = ref.watch(colorProvider); // read
+    return ElevatedButton(
+      onPressed: () => ref.read(colorProvider.notifier).state = Colors.green, // change
+      child: Container(color: color),
+    );
+  }
+}
+
+--------------------------------------------------------------------------------------------------------------------------
+
+Bloc - event driven 
+
+
+// 1. Event - what happened
+class ChangeColorEvent {}
+
+// 2. Bloc - processes event, emits new state
+class ColorBloc extends Bloc<ChangeColorEvent, Color> {
+  ColorBloc() : super(Colors.blue) // initial color = blue
+  { 
+    on<ChangeColorEvent>((event, emit) => emit(Colors.green)); // change to green
+  }
+}
+
+// 3. Widget - fires event, reads state
+class MyWidget extends StatelessWidget {
+  build(context) {
+    return ElevatedButton(
+      onPressed: () => context.read<ColorBloc>().add(ChangeColorEvent()), // fire event
+      child: BlocBuilder<ColorBloc, Color>(
+        builder: (context, color) => Container(color: color), // reads state
+      ),
+    );
+  }
+}
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+Stateful Widget Lifecycle
+
+initState() → build() → setState() → build() → dispose()
+
+1. initState()
+initState() — called once when widget is inserted into the screen.
+
+2.build() - called every time state changes
+
+3.setState() - trigger for rebuild
+
+4. displose() - Use it to clean up things you started in initState().
+Why?
+If you don't clean up, they keep running in background wasting memory even after widget is gone.
+
+app runs → screen opens → initState() → build() → user interacts → setState() → build() → screen closes → dispose()
